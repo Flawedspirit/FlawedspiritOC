@@ -57,4 +57,5 @@ Please note that to keep the code (relatively) simple, the program makes a few a
   * First release to Github! :D
 
 ## TODO
+* See https://github.com/Flawedspirit/FlawedspiritOC/issues for any outstanding issues.
 * Find a way to display information on ALL turbines that isn't confusing or illogical for the user.

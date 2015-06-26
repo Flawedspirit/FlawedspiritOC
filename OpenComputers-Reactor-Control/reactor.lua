@@ -57,7 +57,8 @@ Changelog
 
 TODO
 ------------------------
-* Find a way to display information on ALL turbines that isn't confusing or illogical for the user.
+- See https://github.com/Flawedspirit/FlawedspiritOC/issues for any outstanding issues.
+- Find a way to display information on ALL turbines that isn't confusing or illogical for the user.
 ]]
 
 local component = require("component")
