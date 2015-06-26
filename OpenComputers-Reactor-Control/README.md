@@ -27,7 +27,7 @@ Please note that to keep the code (relatively) simple, the program makes a few a
 
 ## Features
 
-* Dynamic tracking of reactor information, like temperature, fuel/waste levels, coolant levels*, steam output*, or RF storage*
+* Dynamic tracking of reactor information, like temperature, fuel/waste levels, coolant levels`*`, steam output`*`, or RF storage`*`
 * Dynamic tracking of up to 6 turbines, including speed, steam input, RF generation, and RF storage
 * In-program control of reactor power and control rod settings
 * Real-time warning if certain parameters indicate abnormal or non-optimal operation of reactors/turbines
