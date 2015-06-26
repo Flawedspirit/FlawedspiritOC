@@ -58,4 +58,5 @@ Please note that to keep the code (relatively) simple, the program makes a few a
 
 ## TODO
 * See https://github.com/Flawedspirit/FlawedspiritOC/issues for any outstanding issues.
+* Fix screen flickering issue on Page 1 (may not be possible at the moment)
 * Find a way to display information on ALL turbines that isn't confusing or illogical for the user.
