@@ -46,6 +46,7 @@ Resources
 ------------------------
 - This script is available from:
   = http://pastebin.com/zWju7H0z
+  = https://github.com/Flawedspirit/FlawedspiritOC/tree/master/OpenComputers-Reactor-Control
 - Official OpenComputers Site: http://ocdoc.cil.li/
 - Official Big Reactors Site: http://www.big-reactors.com/#/
 - Big Reactors API: http://wiki.technicpack.net/Reactor_Computer_Port
