@@ -13,14 +13,15 @@ Please note that to keep the code (relatively) simple, the program makes a few a
 - A Tier 3 Computer
 - A Tier 2 or better Graphics Card
 - An Internet Card
-- One Tier 2 monitor of dimensions 5 wide by 3 tall
+- One Tier 2 screen OR one Tier 3 screen (for best results)
 - One reactor
-- Any number of (or none at all) turbines
+- Any number of (or zero) turbines
 
 Notes
 ------------------------
 - Only one reactor has been tested with this program (additional reactors added AT OWN RISK)
-- Data for only 6 turbines will display onscreen
+- Data for only 6 turbines will display onscreen if using a Tier 2 screen
+- Data for up to 28 turbines will display onscreen if using a Tier 3 screen
 - Data for ALL turbines will still be tallied in the 'totals' row
 - By default, the program updates once every 2 seconds, though the rate is adjustable
 
@@ -30,8 +31,10 @@ Features
 - Dynamic tracking of up to 6 turbines, including speed, steam input, RF generation, and RF storage
 - In-program control of reactor power and control rod settings
 - Real-time warning if certain parameters indicate abnormal or non-optimal operation of reactors/turbines
+- NEW! Turbine auto mode! Set it to either 900 or 1800 RPM by pressing T and the program will toggle your turbines' induction coils or active state to keep it at the right speed**
 
 * If applicable
+** Note: the author takes no responsibility if you bankrupt your base's energy stores because your turbines are all disengaged. Please use responsibly.
 
 Usage
 ------------------------
@@ -41,12 +44,12 @@ Usage
 - Press ' or / to lower/raise control rods by 10%
 - Press P to toggle reactor power
 - Press Q to exit the program and return to your computer's terminal prompt
+- Press T to toggle 'Auto Mode' on all turbines. This will engage the induction coil when your preferred rotational speed (900 or 1800 RPM) is reached
 
 Resources
 ------------------------
 - This script is available from:
   = http://pastebin.com/zWju7H0z
-  = https://github.com/Flawedspirit/FlawedspiritOC/tree/master/OpenComputers-Reactor-Control
 - Official OpenComputers Site: http://ocdoc.cil.li/
 - Official Big Reactors Site: http://www.big-reactors.com/#/
 - Big Reactors API: http://wiki.technicpack.net/Reactor_Computer_Port
@@ -55,12 +58,15 @@ Changelog
 ------------------------
 - 0.1.4
   - First release to Github! :D
+- 0.1.5
+  - Addition of turbine auto mode
+  - Changes to make the program take better advantage of larger screen sizes
+  - Bug fixes
 
 TODO
 ------------------------
 - See https://github.com/Flawedspirit/FlawedspiritOC/issues for any outstanding issues.
 - Fix screen flickering issue on Page 1 (may not be possible at the moment)
-- Find a way to display information on ALL turbines that isn't confusing or illogical for the user.
 ]]
 
 local component = require("component")
@@ -69,14 +75,15 @@ local keyboard = require("keyboard")
 local os = require("os")
 local term = require("term")
 
-local pollRate = 2
+local pollRate = 2 -- Change to whatever value you'd like; time is in seconds
 local active = true
 local currentPage = 1
+local turbineAutoMode = 0 -- This can be changed to 900 or 1800 if you want
 
 -- Static Text Elements
 local header = "Reactor: "
 local headerOutput = "Running at %d%% max rated output"
-local version = "v0.1.4"
+local version = "v0.1.5"
 
 -- Components
 local gpu = component.gpu
@@ -178,6 +185,37 @@ function printNoSignal()
   gpu.set((w / 2) - 1, (h / 2) + 1, message)
 end
 
+function printControlHelp()
+  hLine(h - 5)
+  label(1, h - 4, "%s", nil, "l / ,")
+  label(16, h - 4, "%s", nil, "; / .")
+  label(32, h - 4, "%s", nil, "' / /")
+  label(48, h - 4, "%s", nil, "p")
+  label(64, h - 4, "%s", nil, "q")
+
+  label(1, h - 3, "%s", colors.gray, "Rods +1/-1")
+  label(16, h - 3, "%s", colors.gray, "Rods +5/-5")
+  label(32, h - 3, "%s", colors.gray, "Rods +10/-10")
+  label(48, h - 3, "%s", colors.gray, "Reactor Power")
+  label(64, h - 3, "%s", colors.gray, "Quit")
+
+  if w > 80 then
+    label(80, h - 4, "%s", nil, "t")
+    label(80, h - 3, "%s", colors.gray, "Turbine Auto Mode")
+  end
+end
+function toggleAutoMode()
+  if turbineAutoMode == 0 then
+    turbineAutoMode = 900
+  elseif turbineAutoMode == 900 then
+    turbineAutoMode = 1800
+  elseif turbineAutoMode == 1800 then
+    turbineAutoMode = 0
+  else
+    turbineAutoMode = 0
+  end
+end
+
 -- Event handler for when a key is pressed
 function onKeyDown(key)
   local event, address, _, key, _ = event.pull()
@@ -203,6 +241,8 @@ function onKeyDown(key)
     reactor.setActive(not reactor.getActive())
   elseif key == keyboard.keys.q then
     active = false
+  elseif key == keyboard.keys.t then
+    toggleAutoMode()
   end
 end
 
@@ -296,6 +336,10 @@ while active do
     if currentPage == 1 then
       box(h - 2, "Press [→] to go to page 2", nil)
 
+      if h > 25 then
+        printControlHelp()
+      end
+
       if component.isAvailable("br_turbine") then
         -- TURBINE TABLE
         -- Table header
@@ -304,9 +348,14 @@ while active do
         label(32, 11, "%s", nil, "Steam In")
         label(48, 11, "%s", nil, "RF Out")
         label(64, 11, "%s", nil, "Stored RF")
+
+        if w > 80 then
+          label(80, 11, "%s", nil, "Coil State")
+        end
         hLine(12)
 
         -- Table body
+        -- Update turbine status
         local turbineTotalSteamIn = 0
               turbineMaxSteamIn = 0
         local turbineTotalRFOut = 0
@@ -314,26 +363,18 @@ while active do
 
         -- by default, only 6 turbines will fit on the screen
         local maxTurbines = 0
-        if #turbine > 6 then
-          maxTurbines = 6
-          label(1, h - 6, "...", colors.orange)
-          label(16, h - 6, "%d %s", colors.orange, (#turbine - 6), "turbine(s) not shown.")
+
+        if h > 25 then
+          maxTurbines = #turbine or 28
+          hOffset = 6
         else
-          maxTurbines = #turbine
+          maxTurbines = 6
+          hOffset = 4
         end
 
-        for i = 1, maxTurbines do
-          label(1, 12 + i, "%d", nil, i)
-          if turbine[i].getRotorSpeed() >= 1780 or turbine[i].getRotorSpeed() <= 1820 then
-            label(16, 12 + i, "%.1f RPM", colors.lime, turbine[i].getRotorSpeed())
-          elseif turbine[i].getRotorSpeed() > 1820 then
-            label(16, 12 + i, "%.1f RPM [!]", colors.red, turbine[i].getRotorSpeed())
-          else
-            label(16, 12 + i, "%.1f RPM", colors.orange, turbine[i].getRotorSpeed())
-          end
-          label(32, 12 + i, "%d mB/t", nil, turbine[i].getFluidFlowRate())
-          label(48, 12 + i, "%d RF/t", nil, turbine[i].getEnergyProducedLastTick())
-          label(64, 12 + i, "%d RF", nil, turbine[i].getEnergyStored())
+        if #turbine > maxTurbines then
+          label(1, h - (hOffset + 2), "...", colors.orange)
+          label(16, h - (hOffset + 2), "%d %s", colors.orange, (#turbine - 6), "turbine(s) not shown. Totals shown for all turbines.")
         end
 
         for i = 1, #turbine do
@@ -341,14 +382,80 @@ while active do
           turbineMaxSteamIn = turbineMaxSteamIn + turbine[i].getFluidFlowRateMax()
           turbineTotalRFOut = turbineTotalRFOut + turbine[i].getEnergyProducedLastTick()
           turbineStoredRF = turbineStoredRF + turbine[i].getEnergyStored()
+
+          -- Auto Mode (TM but not really) fun
+          if turbineAutoMode == 900 or turbineAutoMode == 1800 then
+            if turbineAutoMode == 900 and turbine[i].getRotorSpeed() < 895 or
+             turbineAutoMode == 1800 and turbine[i].getRotorSpeed() < 1795 then
+              turbine[i].setInductorEngaged(false)
+            else
+              turbine[i].setInductorEngaged(true)
+            end
+
+            if turbineAutoMode == 900 and turbine[i].getRotorSpeed() > 920 or
+             turbineAutoMode == 1800 and turbine[i].getRotorSpeed() > 1820 then
+              turbine[i].setActive(false)
+            else
+              turbine[i].setActive(true)
+            end
+          end
+          
+          if w > 80 then
+            label(80, 11, "%s", nil, "Coil State")
+            label(96, 11, "%s", nil, "Status")
+          end
         end
 
-        hLine(h - 5)
-        label(1, h - 4, "%s", nil, "TOTAL")
-        label(16, h - 4, "%s", nil, "--")
-        label(32, h - 4, "%d mB/t", nil, turbineTotalSteamIn)
-        label(48, h - 4, "%d RF/t", nil, turbineTotalRFOut)
-        label(64, h - 4, "%d RF", nil, turbineStoredRF)
+        for i = 1, maxTurbines do
+          label(1, 12 + i, "%d", nil, i)
+
+          if turbine[i].getRotorSpeed() >= 895 and turbine[i].getRotorSpeed() <= 905 or
+           turbine[i].getRotorSpeed() >= 1795 and turbine[i].getRotorSpeed() <= 1805 then
+            label(16, 12 + i, "%.1f RPM", colors.cyan, turbine[i].getRotorSpeed())
+          elseif turbine[i].getRotorSpeed() >= 880 and turbine[i].getRotorSpeed() <= 920 or
+           turbine[i].getRotorSpeed() >= 1780 and turbine[i].getRotorSpeed() <= 1820 then
+            label(16, 12 + i, "%.1f RPM", colors.lime, turbine[i].getRotorSpeed())
+          elseif turbine[i].getRotorSpeed() >= 1821 then
+            label(16, 12 + i, "%.1f RPM [!]", colors.red, turbine[i].getRotorSpeed())
+          else
+            label(16, 12 + i, "%.1f RPM", colors.orange, turbine[i].getRotorSpeed())
+          end
+          label(32, 12 + i, "%d mB/t", nil, turbine[i].getFluidFlowRate())
+          label(48, 12 + i, "%d RF/t", nil, turbine[i].getEnergyProducedLastTick())
+          label(64, 12 + i, "%d RF", nil, turbine[i].getEnergyStored())
+
+          if w > 80 then
+            if turbine[i].getInductorEngaged() then
+              label(80, 12 + i, "%s", colors.lime, "Engaged")
+            else
+              label(80, 12 + i, "%s", colors.red, "Disengaged")
+            end
+            if turbine[i].getRotorSpeed() >= 1821 then
+              label(96, 12 + i, "%s", colors.red, "Overspeed")
+            elseif turbine[i].getRotorSpeed() < 880 then
+              label(96, 12 + i, "%s", colors.red, "Underspeed")
+            elseif turbine[i].getActive() == false then
+              label(96, 12 + i, "%s", colors.gray, "Disabled")
+            else
+              label(96, 12 + i, "%s", nil, "Normal")
+            end
+          end
+        end
+
+        hLine(h - (hOffset + 1))
+        label(1, h - (hOffset), "%s", nil, "TOTAL")
+        label(16, h - (hOffset), "%s", nil, "--")
+        label(32, h - (hOffset), "%d mB/t", nil, turbineTotalSteamIn)
+        label(48, h - (hOffset), "%d RF/t", nil, turbineTotalRFOut)
+        label(64, h - (hOffset), "%d RF", nil, turbineStoredRF)
+
+        if turbineAutoMode == 0 then
+          label(80, h - (hOffset), "%s %s", nil, "Auto Mode:", "Off")
+        elseif turbineAutoMode == 900 then
+          label(80, h - (hOffset), "%s %s", nil, "Auto Mode:", "900 RPM")
+        elseif turbineAutoMode == 1800 then
+         label(80, h - (hOffset), "%s %s", nil, "Auto Mode:", "1800 RPM")
+        end
       else
         label(1, 11, "%s: %d RF", nil, reactorStatus.storedRF[1], reactorStatus.storedRF[2])
         label(1, 13, "%s", nil, "No turbines were detected.")
@@ -366,17 +473,7 @@ while active do
       label(1, 13, "%s", nil, "ALL RODS [")
       label(w - 10, 13, "%s %d%%", nil, "]", totalControlRodLevel)
 
-      hLine(h - 7)
-      label(1, h - 6, "%s", nil, "l / ,")
-      label(16, h - 6, "%s", nil, "; / .")
-      label(32, h - 6, "%s", nil, "' / /")
-      label(48, h - 6, "%s", nil, "p")
-
-      label(1, h - 5, "%s", colors.gray, "Rods +1/-1")
-      label(16, h - 5, "%s", colors.gray, "Rods +5/-5")
-      label(32, h - 5, "%s", colors.gray, "Rods +10/-10")
-      label(48, h - 5, "%s", colors.gray, "Reactor Power")
-
+      printControlHelp()
       os.sleep(pollRate)
     end
   else
@@ -384,6 +481,6 @@ while active do
   end
 end
 
--- Unregister key_down event on program exit or things get... serious...
+-- Unregister key_down event on program exit or things get... weird...
 event.ignore("key_down", onKeyDown)
 term.clear()

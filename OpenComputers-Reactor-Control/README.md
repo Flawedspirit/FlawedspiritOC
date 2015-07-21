@@ -13,15 +13,18 @@ This program was tested on and designed to work with the mod versions and config
 
 Please note that to keep the code (relatively) simple, the program makes a few assumptions; those being:
 
-* A Tier 3 Computer (requires at least a Tier 2 Graphics Card and Internet Card)
-* One Tier 2 monitor of dimensions 5 wide by 3 tall
+* A Tier 3 Computer
+* A Tier 2 or better Graphics Card
+* An Internet Card
+* One Tier 2 screen OR one Tier 3 screen (for best results)
 * One reactor
-* Any number of (or none at all) turbines
+* Any number of (or zero) turbines
 
 ## Notes
 
 * Only one reactor has been tested with this program (additional reactors added AT OWN RISK)
 * Data for only 6 turbines will display onscreen
+* Data for up to 28 turbines will display onscreen if using a Tier 3 screen
 * Data for ALL turbines will still be tallied in the 'totals' row
 * By default, the program updates once every 2 seconds, though the rate is adjustable
 
@@ -31,8 +34,10 @@ Please note that to keep the code (relatively) simple, the program makes a few a
 * Dynamic tracking of up to 6 turbines, including speed, steam input, RF generation, and RF storage
 * In-program control of reactor power and control rod settings
 * Real-time warning if certain parameters indicate abnormal or non-optimal operation of reactors/turbines
+* NEW! Turbine auto mode! Set it to either 900 or 1800 RPM by pressing T and the program will toggle your turbines' induction coils or active state to keep it at the right speed`**`
 
 `*` If applicable
+`**` Note: the author takes no responsibility if you bankrupt your base's energy stores because your turbines are all disengaged. Please use responsibly.
 
 ## Usage
 
@@ -42,6 +47,7 @@ Please note that to keep the code (relatively) simple, the program makes a few a
 * Press ' or / to lower/raise control rods by 10%
 * Press P to toggle reactor power
 * Press Q to exit the program and return to your computer's terminal prompt
+* Press T to toggle 'Auto Mode' on all turbines. This will engage the induction coil when your preferred rotational speed (900 or 1800 RPM) is reached
 
 ## Resources
 
@@ -56,8 +62,11 @@ Please note that to keep the code (relatively) simple, the program makes a few a
 
 * 0.1.4
   * First release to Github! :D
+* 0.1.5
+  * Addition of turbine auto mode
+  * Changes to make the program take better advantage of larger screen sizes
+  * Bug fixes
 
 ## TODO
 * See https://github.com/Flawedspirit/FlawedspiritOC/issues for any outstanding issues.
 * Fix screen flickering issue on Page 1 (may not be possible at the moment)
-* Find a way to display information on ALL turbines that isn't confusing or illogical for the user.
