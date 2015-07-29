@@ -60,12 +60,14 @@ Please note that to keep the code (relatively) simple, the program makes a few a
 
 ## Changelog
 
-* 0.1.4
-  * First release to Github! :D
+* 0.1.6
+  * Fixed a bug that caused the program to crash when run on a Tier 2 screen
 * 0.1.5
   * Addition of turbine auto mode
   * Changes to make the program take better advantage of larger screen sizes
   * Bug fixes
+* 0.1.4
+  * First release to Github! :D
 
 ## TODO
 * See https://github.com/Flawedspirit/FlawedspiritOC/issues for any outstanding issues.

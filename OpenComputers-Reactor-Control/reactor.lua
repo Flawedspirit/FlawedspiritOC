@@ -56,12 +56,14 @@ Resources
 
 Changelog
 ------------------------
-- 0.1.4
-  - First release to Github! :D
+- 0.1.6
+  - Fixed a bug that caused the program to crash when run on a Tier 2 screen
 - 0.1.5
   - Addition of turbine auto mode
   - Changes to make the program take better advantage of larger screen sizes
   - Bug fixes
+- 0.1.4
+  - First release to Github! :D
 
 TODO
 ------------------------
@@ -83,7 +85,7 @@ local turbineAutoMode = 0 -- This can be changed to 900 or 1800 if you want
 -- Static Text Elements
 local header = "Reactor: "
 local headerOutput = "Running at %d%% max rated output"
-local version = "v0.1.5"
+local version = "v0.1.6"
 
 -- Components
 local gpu = component.gpu
@@ -365,10 +367,10 @@ while active do
         local maxTurbines = 0
 
         if h > 25 then
-          maxTurbines = #turbine or 28
+          maxTurbines = math.min(#turbine, 28)
           hOffset = 6
         else
-          maxTurbines = 6
+          maxTurbines = math.min(#turbine, 6)
           hOffset = 4
         end
 
