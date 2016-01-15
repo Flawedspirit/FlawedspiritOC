@@ -4,10 +4,7 @@
 
 This program lets you monitor and actively control a Big Reactors reactor and turbines with an OpenComputers computer.
 
-This program was tested on and designed to work with the mod versions and configurations installed on Flawedspirit's Mental Instability Pack, though as the pack uses default settings for both Big Reactors and OpenComputers, there should be no issues using a different modpack, or even a modpack that makes changes to how BR works.
-
-* http://technicpack.net/modpack/mi-reloaded.604813
-* https://flawedspirit.com/minecraft/#pack
+This program was tested on and designed to work with the mod versions and configurations installed on Flawedspirit's Mental Instability Pack (no longer available), though as the pack uses default settings for both Big Reactors and OpenComputers, there should be no issues using a different modpack, or even a modpack that makes changes to how BR works.
 
 ## Computer Design
 
